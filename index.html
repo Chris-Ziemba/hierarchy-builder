@@ -43,6 +43,8 @@
 
   .banner{display:none;margin:14px 32px 0;padding:12px 15px;border-radius:11px;background:#fbf1d8;border:1px solid #ecd9a6;color:#7a5a12;font-size:13.5px;line-height:1.5}
   .banner.show{display:block}
+  .banner.error{background:#fbe6e1;border-color:#eab9ac;color:#8a2f1c}
+  .banner .detail{display:block;margin-top:6px;font-size:12px;opacity:.85;font-family:ui-monospace,Menlo,Consolas,monospace;word-break:break-word}
   .banner b{font-weight:700}
 
   .stats{display:flex;gap:22px;padding:12px 32px;color:var(--ink-soft);font-size:13px;border-bottom:1px solid var(--line);flex-wrap:wrap}
@@ -184,8 +186,8 @@
    2. Paste your Project URL and anon public key between the quotes
    Leave them as-is to run in local-only mode.
    ============================================================ */
-var SUPABASE_URL      = "https://daihzvoqxminduuybuul.supabase.co/rest/v1/";   // e.g. https://abcd1234.supabase.co
-var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhaWh6dm9xeG1pbmR1dXlidXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxMTQ2MjgsImV4cCI6MjA5NTY5MDYyOH0.FJTz_9TkNLoQpFLosrCCW7EnxcS6C4Q0aYUJQzFzELo";      // the long "anon public" key
+var SUPABASE_URL      = "YOUR-PROJECT-URL";   // e.g. https://abcd1234.supabase.co
+var SUPABASE_ANON_KEY = "YOUR-ANON-KEY";      // the long "anon public" key
 /* ============================================================ */
 
 (function(){
@@ -261,6 +263,25 @@ var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
   function dbDelete(id){ if(!CLOUD){ save(); return; } sb.from("nodes").delete().eq("id",id).then(dbErr); }
   function dbUnassign(parentId){ if(!CLOUD) return; sb.from("nodes").update({parent_id:null,updated_at:new Date().toISOString()}).eq("parent_id",parentId).then(dbErr); }
 
+  function escapeHtml(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  function cloudFailed(e){
+    CLOUD=false;
+    var raw=(e&&(e.message||e.error_description||e.details||e.hint))||(typeof e==="string"?e:"unknown error");
+    var low=raw.toLowerCase(), hint;
+    if(low.indexOf("does not exist")>-1||low.indexOf("relation")>-1||low.indexOf("schema cache")>-1||low.indexOf("404")>-1)
+      hint="The database table hasn\u2019t been created yet. In Supabase open SQL Editor and run the table setup, then reload this page.";
+    else if(low.indexOf("api key")>-1||low.indexOf("apikey")>-1||low.indexOf("jwt")>-1||low.indexOf("invalid")>-1||low.indexOf("401")>-1||low.indexOf("permission")>-1)
+      hint="The anon key looks wrong or row-level-security is blocking access. Re-copy the \u201canon public\u201d key (Project Settings \u2192 API), and make sure you ran the policy lines in the SQL setup.";
+    else if(low.indexOf("failed to fetch")>-1||low.indexOf("networkerror")>-1||low.indexOf("cors")>-1)
+      hint="The Project URL may be wrong (it should look like https://xxxx.supabase.co with no trailing slash), or a browser ad-blocker is blocking it.";
+    else hint="Double-check the Project URL, the anon key (no extra spaces or quotes), and that you ran the SQL setup step.";
+    var s=document.getElementById("status"), t=document.getElementById("status-text");
+    s.classList.remove("live"); t.textContent="Local only";
+    var b=document.getElementById("banner");
+    b.classList.add("show","error");
+    b.innerHTML='<b>Couldn\u2019t connect to Supabase.</b> '+hint+'<span class="detail">Error detail: '+escapeHtml(raw)+'</span>';
+    loadLocal(function(){ seedIfEmpty(); render(); });
+  }
   function setStatus(live){
     var s=document.getElementById("status"), t=document.getElementById("status-text");
     if(live){ s.classList.add("live"); t.textContent="Live · shared"; }
@@ -275,8 +296,7 @@ var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 
   function cloudInit(){
     try{ sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
-    catch(e){ CLOUD=false; }
-    if(!CLOUD){ startLocal(); return; }
+    catch(e){ cloudFailed(e); return; }
     sb.from("nodes").select("*").then(function(res){
       if(res.error){ throw res.error; }
       state = rowsToState(res.data);
@@ -284,9 +304,8 @@ var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
       render();
       subscribeRealtime();
     }).catch(function(e){
-      console.error(e); CLOUD=false;
-      toast("Couldn\u2019t reach the cloud — running locally for now");
-      startLocal();
+      console.error(e);
+      cloudFailed(e);
     });
   }
   function subscribeRealtime(){
