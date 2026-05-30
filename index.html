@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Business Hierarchy Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f7f3ec;
+    --paper-2:#fdfbf7;
+    --ink:#23202a;
+    --ink-soft:#6c6678;
+    --line:#e3dbcf;
+    --line-2:#d6ccba;
+
+    --dept:#5b4fc4;        --dept-bg:#ecebfb;   --dept-line:#cfc9f4;
+    --bu:#0e8f7e;          --bu-bg:#e6f4f0;     --bu-line:#bfe5dc;
+    --prod:#c2683a;        --prod-bg:#faf0e7;   --prod-line:#ecd2bc;
+
+    --shadow:0 1px 2px rgba(40,30,20,.05),0 8px 24px rgba(40,30,20,.06);
+    --shadow-lift:0 4px 10px rgba(40,30,20,.10),0 18px 40px rgba(40,30,20,.14);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:"Hanken Grotesk",ui-sans-serif,system-ui,sans-serif;
+    background:
+      radial-gradient(1200px 600px at 15% -10%, #fffdf8 0%, rgba(255,253,248,0) 55%),
+      radial-gradient(900px 500px at 100% 0%, #f2ecdf 0%, rgba(242,236,223,0) 60%),
+      var(--paper);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;min-height:100vh;
+  }
+
+  header{
+    padding:26px 32px 18px;border-bottom:1px solid var(--line);
+    display:flex;flex-wrap:wrap;align-items:flex-end;gap:18px 28px;
+    background:linear-gradient(180deg, rgba(255,253,248,.7), rgba(255,253,248,0));
+  }
+  .title-wrap{display:flex;flex-direction:column;gap:4px;margin-right:auto}
+  h1{font-family:"Fraunces",serif;font-weight:600;font-size:30px;line-height:1;letter-spacing:-.01em}
+  h1 .dot{color:var(--prod)}
+  .subtitle{color:var(--ink-soft);font-size:14.5px;max-width:54ch}
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px}
+  button.tool{
+    font-family:inherit;font-size:13px;font-weight:600;color:var(--ink);
+    background:var(--paper-2);border:1px solid var(--line-2);border-radius:9px;
+    padding:8px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;
+    transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+  }
+  button.tool:hover{transform:translateY(-1px);box-shadow:var(--shadow);border-color:var(--ink-soft)}
+  button.tool:active{transform:translateY(0)}
+  button.tool svg{width:15px;height:15px}
+  button.tool.danger{color:#a23b2a}
+  button.tool.primary{background:var(--ink);color:#fdfbf7;border-color:var(--ink)}
+
+  .stats{display:flex;gap:22px;padding:12px 32px;color:var(--ink-soft);font-size:13px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .stats b{color:var(--ink);font-weight:700}
+  .stats .seg{display:inline-flex;align-items:center;gap:7px}
+  .swatch{width:10px;height:10px;border-radius:3px;display:inline-block}
+
+  .board{display:grid;grid-template-columns:1.9fr 1fr 1fr;gap:18px;padding:22px 32px 40px;align-items:start}
+  @media(max-width:980px){.board{grid-template-columns:1fr}}
+
+  .column{background:var(--paper-2);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;min-height:220px}
+  .col-head{padding:16px 16px 13px;border-bottom:1px solid var(--line);position:relative}
+  .col-head::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px}
+  .col-dept .col-head::before{background:var(--dept)}
+  .col-bu   .col-head::before{background:var(--bu)}
+  .col-prod .col-head::before{background:var(--prod)}
+  .col-tier{font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--ink-soft)}
+  .col-name{font-family:"Fraunces",serif;font-weight:600;font-size:18.5px;margin-top:2px}
+  .col-dept .col-name{color:var(--dept)} .col-bu .col-name{color:var(--bu)} .col-prod .col-name{color:var(--prod)}
+  .col-sub{font-size:12px;color:var(--ink-soft);margin-top:3px}
+
+  .adder{display:flex;gap:8px;padding:13px 16px;border-bottom:1px dashed var(--line)}
+  .adder input{flex:1;font-family:inherit;font-size:14px;color:var(--ink);background:#fff;border:1px solid var(--line-2);border-radius:9px;padding:9px 11px;outline:none;transition:border-color .15s ease, box-shadow .15s ease}
+  .adder input:focus{border-color:var(--ink-soft);box-shadow:0 0 0 3px rgba(110,100,120,.10)}
+  .adder button{font-family:inherit;font-weight:700;font-size:18px;line-height:1;color:#fff;border:none;border-radius:9px;width:40px;cursor:pointer;flex:none;transition:filter .12s ease, transform .12s ease}
+  .adder button:hover{filter:brightness(1.08);transform:translateY(-1px)}
+  .col-dept .adder button{background:var(--dept)}
+  .col-bu   .adder button{background:var(--bu)}
+  .col-prod .adder button{background:var(--prod)}
+
+  .body{padding:12px;display:flex;flex-direction:column;gap:12px;flex:1}
+
+  /* ---------- Drop zones ---------- */
+  .dropzone{border-radius:10px;border:1.5px dashed transparent;transition:border-color .12s ease,background .12s ease;display:flex;flex-direction:column;gap:10px}
+  .dropzone.tray{min-height:120px;padding:4px}
+  .dropzone.over{border-color:currentColor;background:rgba(255,255,255,.6)}
+  .dz-bu.over{color:var(--bu)} .dz-product.over{color:var(--prod)}
+  .hint{color:#b6ab98;font-size:12.5px;font-style:italic;padding:10px 6px;text-align:center;border-radius:8px}
+  .hint.rail{text-align:left;padding:8px 10px}
+
+  /* ---------- Cards ---------- */
+  .card{position:relative;border-radius:11px;transition:box-shadow .12s ease,transform .12s ease,opacity .12s ease,border-color .12s ease}
+  .card.dragging{opacity:.35}
+  .card-head{display:flex;align-items:center;gap:9px;padding:10px 11px;cursor:grab}
+  .card-head:active{cursor:grabbing}
+  .grip{color:#cdc4b3;flex:none;display:flex}
+  .grip svg{width:14px;height:14px}
+  .accent{width:8px;height:8px;border-radius:3px;flex:none}
+  .label{flex:1;font-weight:600;color:var(--ink);word-break:break-word;font-size:14px}
+  .edit-input{flex:1;font-family:inherit;font-size:14px;font-weight:600;color:var(--ink);border:1px solid var(--ink-soft);border-radius:6px;padding:3px 6px;outline:none}
+  .x{flex:none;border:none;background:transparent;color:#c2b9a8;cursor:pointer;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .12s ease,color .12s ease,background .12s ease}
+  .card:hover>.card-head .x{opacity:1}
+  .x:hover{color:#a23b2a;background:#f6e3dd}
+  .x svg{width:14px;height:14px}
+  .kidcount{font-size:11px;font-weight:700;color:var(--ink-soft);background:rgba(0,0,0,.05);padding:1px 7px;border-radius:999px}
+  .chev{flex:none;border:none;background:transparent;color:var(--ink-soft);cursor:pointer;width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;margin:-2px 0 -2px -3px;transition:transform .16s ease,background .12s ease,color .12s ease}
+  .chev:hover{background:rgba(0,0,0,.06);color:var(--ink)}
+  .chev svg{width:15px;height:15px}
+  .chev.rot{transform:rotate(-90deg)}
+  .card.collapsed>.dropzone{display:none}
+  .card.collapsed>.card-head{opacity:.92}
+
+  /* Department card (top level / live tree) */
+  .card.dept{background:#fff;border:1px solid var(--line-2);border-left:4px solid var(--dept);box-shadow:var(--shadow)}
+  .card.dept>.card-head .label{font-family:"Fraunces",serif;font-size:16px;color:var(--dept)}
+  .card.dept .bu-zone{padding:2px 12px 12px}
+
+  /* Business unit card */
+  .card.bu{background:var(--bu-bg);border:1px solid var(--bu-line);border-left:4px solid var(--bu)}
+  .card.bu>.card-head .label{color:#0a6f61}
+  .card.bu .prod-zone{padding:0 11px 11px}
+
+  /* Product card (leaf) */
+  .card.product{background:#fff;border:1px solid var(--prod-line);border-left:3px solid var(--prod)}
+  .card.product>.card-head{padding:8px 11px}
+
+  .card:hover{box-shadow:var(--shadow-lift)}
+  .card.drop-before{box-shadow:0 -3px 0 currentColor, var(--shadow-lift)}
+  .card.drop-after{box-shadow:0 3px 0 currentColor, var(--shadow-lift)}
+  .card.dept.drop-before,.card.dept.drop-after{color:var(--dept)}
+  .card.bu.drop-before,.card.bu.drop-after{color:var(--bu)}
+  .card.product.drop-before,.card.product.drop-after{color:var(--prod)}
+
+  .col-empty{color:#b6ab98;font-size:13px;font-style:italic;text-align:center;padding:22px 8px}
+
+  /* ---------- Modal ---------- */
+  .scrim{position:fixed;inset:0;background:rgba(35,28,20,.42);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:50;padding:24px}
+  .scrim.show{display:flex}
+  .modal{background:var(--paper-2);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow-lift);max-width:560px;width:100%;max-height:84vh;display:flex;flex-direction:column;overflow:hidden}
+  .modal-head{padding:18px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
+  .modal-head h2{font-family:"Fraunces",serif;font-weight:600;font-size:20px;margin-right:auto}
+  .modal-body{padding:18px 22px;overflow:auto}
+  .tree{font-size:14px;line-height:1.55}
+  .tree .t-dept{font-weight:700;color:var(--dept);margin-top:14px;font-family:"Fraunces",serif;font-size:16px}
+  .tree .t-dept:first-child{margin-top:0}
+  .tree .t-bu{margin-left:18px;color:#0a6f61;font-weight:600;margin-top:6px}
+  .tree .t-prod{margin-left:38px;color:var(--ink);font-weight:500;display:flex;gap:7px;align-items:baseline}
+  .tree .t-prod::before{content:"–";color:var(--prod)}
+  .tree .t-none{margin-left:18px;color:#b6ab98;font-style:italic;font-size:12.5px}
+  .modal-foot{padding:14px 22px;border-top:1px solid var(--line);display:flex;gap:9px;justify-content:flex-end}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(120%);background:var(--ink);color:#fdfbf7;padding:11px 18px;border-radius:10px;font-size:13.5px;font-weight:600;box-shadow:var(--shadow-lift);transition:transform .28s cubic-bezier(.2,.9,.3,1.2);z-index:60}
+  .toast.show{transform:translateX(-50%) translateY(0)}
+  input[type=file]{display:none}
+</style>
+</head>
+<body>
+  <header>
+    <div class="title-wrap">
+      <h1>Business Hierarchy Builder<span class="dot">.</span></h1>
+      <p class="subtitle">Add items in the trays, then drag them into place. Drop a business unit into a department and its products travel with it — building one real, nested hierarchy.</p>
+    </div>
+    <div class="toolbar">
+      <button class="tool" id="btn-fold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 13 12 18 17 13"/><polyline points="7 6 12 11 17 6"/></svg>Collapse / expand</button>
+      <button class="tool primary" id="btn-outline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>View hierarchy</button>
+      <button class="tool" id="btn-export"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export</button>
+      <button class="tool" id="btn-import"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Import</button>
+      <input type="file" id="file-input" accept="application/json,.json">
+      <button class="tool danger" id="btn-reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>Reset</button>
+    </div>
+  </header>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="board">
+    <section class="column col-dept">
+      <div class="col-head"><div class="col-tier">Tier 1 · the hierarchy</div><div class="col-name">Departments</div><div class="col-sub">Your live, nested structure</div></div>
+      <div class="adder"><input id="add-dept" placeholder="New department…" autocomplete="off"><button data-add="dept" title="Add department">+</button></div>
+      <div class="body" id="body-dept"></div>
+    </section>
+
+    <section class="column col-bu">
+      <div class="col-head"><div class="col-tier">Tier 2 · staging</div><div class="col-name">Business Units</div><div class="col-sub">Unplaced — drag into a department</div></div>
+      <div class="adder"><input id="add-bu" placeholder="New business unit…" autocomplete="off"><button data-add="bu" title="Add business unit">+</button></div>
+      <div class="body" id="body-bu"></div>
+    </section>
+
+    <section class="column col-prod">
+      <div class="col-head"><div class="col-tier">Tier 3 · staging</div><div class="col-name">Products &amp; Services</div><div class="col-sub">Unplaced — drag onto a business unit</div></div>
+      <div class="adder"><input id="add-prod" placeholder="New product or service…" autocomplete="off"><button data-add="prod" title="Add product/service">+</button></div>
+      <div class="body" id="body-prod"></div>
+    </section>
+  </div>
+
+  <div class="scrim" id="scrim">
+    <div class="modal">
+      <div class="modal-head"><h2>Hierarchy outline</h2><button class="tool" id="btn-close">Close</button></div>
+      <div class="modal-body"><div class="tree" id="tree"></div></div>
+      <div class="modal-foot"><button class="tool" id="btn-copy">Copy as text</button><button class="tool primary" id="btn-download-json">Download JSON</button></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var state = { departments:[], businessUnits:[], products:[] };
+  var STORE_KEY = "business-hierarchy-v2";
+  var drag = { kind:null, id:null };
+  var collapsed = {};                 // id -> true when collapsed
+  var springTimer=null, springId=null;
+
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+  function arrFor(kind){ return kind==="dept"?state.departments : kind==="bu"?state.businessUnits : state.products; }
+  function parentField(kind){ return kind==="bu"?"departmentId" : kind==="product"?"businessUnitId" : null; }
+
+  // ---------- Persistence (best-effort; falls back to export/import) ----------
+  function save(){ try{ if(window.storage&&window.storage.set){ window.storage.set(STORE_KEY, JSON.stringify(state), false).catch(function(){}); } }catch(e){} }
+  function saveUI(){ try{ if(window.storage&&window.storage.set){ window.storage.set(STORE_KEY+":ui", JSON.stringify(collapsed), false).catch(function(){}); } }catch(e){} }
+  function load(cb){
+    try{
+      if(window.storage&&window.storage.get){
+        window.storage.get(STORE_KEY,false).then(function(r){
+          if(r&&r.value){ try{ var d=JSON.parse(r.value); if(d&&d.departments) state=normalize(d); }catch(e){} }
+          return window.storage.get(STORE_KEY+":ui",false);
+        }).then(function(r2){
+          if(r2&&r2.value){ try{ collapsed=JSON.parse(r2.value)||{}; }catch(e){} }
+          cb();
+        }).catch(function(){cb();});
+        return;
+      }
+    }catch(e){}
+    cb();
+  }
+  function normalize(d){
+    return {
+      departments:(d.departments||[]).map(function(x){return {id:x.id||uid(),name:x.name||""};}),
+      businessUnits:(d.businessUnits||[]).map(function(x){return {id:x.id||uid(),name:x.name||"",departmentId:x.departmentId||null};}),
+      products:(d.products||[]).map(function(x){return {id:x.id||uid(),name:x.name||"",businessUnitId:x.businessUnitId||null};})
+    };
+  }
+
+  // ---------- Mutations ----------
+  function addItem(kind,name){
+    name=(name||"").trim(); if(!name) return;
+    if(kind==="dept") state.departments.push({id:uid(),name:name});
+    else if(kind==="bu") state.businessUnits.push({id:uid(),name:name,departmentId:null});
+    else state.products.push({id:uid(),name:name,businessUnitId:null});
+    save(); render();
+  }
+  function rename(kind,id,name){ name=(name||"").trim(); var it=arrFor(kind).find(function(x){return x.id===id;}); if(it&&name){it.name=name;save();} render(); }
+  function remove(kind,id){
+    if(kind==="dept"){ state.departments=state.departments.filter(function(x){return x.id!==id;}); state.businessUnits.forEach(function(b){if(b.departmentId===id)b.departmentId=null;}); }
+    else if(kind==="bu"){ state.businessUnits=state.businessUnits.filter(function(x){return x.id!==id;}); state.products.forEach(function(p){if(p.businessUnitId===id)p.businessUnitId=null;}); }
+    else { state.products=state.products.filter(function(x){return x.id!==id;}); }
+    save(); render();
+  }
+  function moveToGroup(kind,dragId,parentId){
+    var arr=arrFor(kind); var i=arr.findIndex(function(x){return x.id===dragId;}); if(i<0) return;
+    var item=arr.splice(i,1)[0]; var f=parentField(kind); if(f) item[f]=parentId; arr.push(item); save(); render();
+  }
+  function moveToCard(kind,dragId,targetId,after){
+    if(dragId===targetId) return;
+    var arr=arrFor(kind); var di=arr.findIndex(function(x){return x.id===dragId;}); if(di<0) return;
+    var item=arr.splice(di,1)[0];
+    var target=arr.find(function(x){return x.id===targetId;});
+    var f=parentField(kind);
+    if(target){ if(f) item[f]=target[f]!==undefined?target[f]:null; }
+    var ti=arr.findIndex(function(x){return x.id===targetId;});
+    if(ti<0){ arr.push(item); } else { arr.splice(after?ti+1:ti,0,item); }
+    save(); render();
+  }
+
+  // ---------- DnD primitives ----------
+  function clearMarks(){ document.querySelectorAll(".dragging,.over,.drop-before,.drop-after").forEach(function(n){n.classList.remove("dragging","over","drop-before","drop-after");}); }
+  function clearSpring(){ if(springTimer){ clearTimeout(springTimer); springTimer=null; } springId=null; }
+  function attachSpring(card,id){
+    // While dragging, hovering a collapsed node briefly auto-expands it so you can drill in.
+    card.addEventListener("dragover",function(e){
+      if(!drag.kind || !collapsed[id]) return;
+      if(springId===id) return;
+      clearSpring(); springId=id;
+      springTimer=setTimeout(function(){
+        collapsed[id]=false; card.classList.remove("collapsed");
+        var ch=card.querySelector(":scope > .card-head > .chev"); if(ch) ch.classList.remove("rot");
+        saveUI(); springTimer=null; springId=null;
+      },520);
+    });
+    card.addEventListener("dragleave",function(e){ if(springId===id && !card.contains(e.relatedTarget)) clearSpring(); });
+  }
+  function addChevron(head,id){
+    var chev=el("button","chev"+(collapsed[id]?" rot":"")); chev.innerHTML=icon(CHEV); chev.title="Collapse / expand";
+    chev.addEventListener("click",function(e){ e.stopPropagation(); collapsed[id]=!collapsed[id]; saveUI(); render(); });
+    head.insertBefore(chev, head.firstChild);
+  }
+  function dragSource(card,kind,id){
+    card.setAttribute("draggable","true");
+    var head=card.querySelector(":scope > .card-head") || card;
+    card.addEventListener("dragstart",function(e){ e.stopPropagation(); drag.kind=kind; drag.id=id; e.dataTransfer.effectAllowed="move"; try{e.dataTransfer.setData("text/plain",id);}catch(_){ } card.classList.add("dragging"); });
+    card.addEventListener("dragend",function(){ drag.kind=null; drag.id=null; clearMarks(); clearSpring(); });
+  }
+  function reorderTarget(card,kind,id){
+    card.addEventListener("dragover",function(e){
+      if(drag.kind!==kind || drag.id===id) return;
+      e.preventDefault();
+      var r=card.getBoundingClientRect(); var after=(e.clientY-r.top)>r.height/2;
+      card.classList.toggle("drop-after",after); card.classList.toggle("drop-before",!after);
+    });
+    card.addEventListener("dragleave",function(e){ if(!card.contains(e.relatedTarget)) card.classList.remove("drop-before","drop-after"); });
+    card.addEventListener("drop",function(e){
+      if(drag.kind!==kind || drag.id===id) return;
+      e.preventDefault(); e.stopPropagation();
+      var r=card.getBoundingClientRect(); var after=(e.clientY-r.top)>r.height/2;
+      card.classList.remove("drop-before","drop-after");
+      moveToCard(kind,drag.id,id,after);
+    });
+  }
+  function makeZone(childKind,parentId,extraClass){
+    var zone=el("div","dropzone dz-"+childKind+(extraClass?(" "+extraClass):""));
+    zone.addEventListener("dragover",function(e){ if(drag.kind===childKind){ e.preventDefault(); zone.classList.add("over"); } });
+    zone.addEventListener("dragleave",function(e){ if(e.target===zone||!zone.contains(e.relatedTarget)) zone.classList.remove("over"); });
+    zone.addEventListener("drop",function(e){ if(drag.kind===childKind){ e.preventDefault(); e.stopPropagation(); zone.classList.remove("over"); moveToGroup(childKind,drag.id,parentId); } });
+    return zone;
+  }
+
+  // ---------- Element builders ----------
+  function el(tag,cls,txt){ var n=document.createElement(tag); if(cls)n.className=cls; if(txt!=null)n.textContent=txt; return n; }
+  function icon(p){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+p+'</svg>'; }
+  var GRIP='<circle cx="9" cy="6" r="1.4" fill="currentColor" stroke="none"/><circle cx="15" cy="6" r="1.4" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="9" cy="18" r="1.4" fill="currentColor" stroke="none"/><circle cx="15" cy="18" r="1.4" fill="currentColor" stroke="none"/>';
+  var XICON='<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>';
+  var CHEV='<polyline points="6 9 12 15 18 9"/>';
+
+  function cardHead(kind,item,countText){
+    var head=el("div","card-head");
+    var grip=el("span","grip"); grip.innerHTML=icon(GRIP); head.appendChild(grip);
+    var acc=el("span","accent"); head.appendChild(acc);
+    var label=el("span","label",item.name); head.appendChild(label);
+    if(countText!=null){ var kc=el("span","kidcount",countText); head.appendChild(kc); }
+    var x=el("button","x"); x.innerHTML=icon(XICON); x.title="Delete";
+    x.addEventListener("click",function(ev){ ev.stopPropagation(); remove(kind,item.id); });
+    head.appendChild(x);
+    label.addEventListener("dblclick",function(ev){
+      ev.stopPropagation();
+      var inp=el("input","edit-input"); inp.value=item.name; head.replaceChild(inp,label); inp.focus(); inp.select();
+      var done=function(c){ rename(kind,item.id,c?inp.value:item.name); };
+      inp.addEventListener("keydown",function(e){ if(e.key==="Enter")done(true); if(e.key==="Escape")done(false); });
+      inp.addEventListener("blur",function(){ done(true); });
+    });
+    return head;
+  }
+
+  function makeProduct(p){
+    var c=el("div","card product"); c.appendChild(cardHead("product",p));
+    dragSource(c,"product",p.id); reorderTarget(c,"product",p.id);
+    return c;
+  }
+  function makeBU(b){
+    var kids=state.products.filter(function(p){return p.businessUnitId===b.id;});
+    var c=el("div","card bu");
+    var head=cardHead("bu",b, kids.length?String(kids.length):null);
+    if(kids.length) addChevron(head,b.id);
+    c.appendChild(head);
+    if(collapsed[b.id]) c.classList.add("collapsed");
+    var zone=makeZone("product",b.id); zone.classList.add("prod-zone");
+    if(kids.length){ kids.forEach(function(p){ zone.appendChild(makeProduct(p)); }); }
+    else { zone.appendChild(el("div","hint rail","drop products here")); }
+    c.appendChild(zone);
+    dragSource(c,"bu",b.id); reorderTarget(c,"bu",b.id); attachSpring(c,b.id);
+    return c;
+  }
+  function makeDept(d){
+    var kids=state.businessUnits.filter(function(b){return b.departmentId===d.id;});
+    var c=el("div","card dept");
+    var head=cardHead("dept",d, kids.length?String(kids.length):null);
+    if(kids.length) addChevron(head,d.id);
+    c.appendChild(head);
+    if(collapsed[d.id]) c.classList.add("collapsed");
+    var zone=makeZone("bu",d.id); zone.classList.add("bu-zone");
+    if(kids.length){ kids.forEach(function(b){ zone.appendChild(makeBU(b)); }); }
+    else { zone.appendChild(el("div","hint rail","drop business units here")); }
+    c.appendChild(zone);
+    dragSource(c,"dept",d.id); reorderTarget(c,"dept",d.id); attachSpring(c,d.id);
+    return c;
+  }
+
+  // ---------- Render ----------
+  function render(){
+    var bd=document.getElementById("body-dept"); bd.innerHTML="";
+    if(!state.departments.length){ bd.appendChild(el("div","col-empty","No departments yet. Add one above to start your hierarchy.")); }
+    else { state.departments.forEach(function(d){ bd.appendChild(makeDept(d)); }); }
+
+    var bb=document.getElementById("body-bu"); bb.innerHTML="";
+    var uBU=state.businessUnits.filter(function(b){return !b.departmentId;});
+    var zb=makeZone("bu",null,"tray");
+    if(uBU.length){ uBU.forEach(function(b){ zb.appendChild(makeBU(b)); }); }
+    else { zb.appendChild(el("div","hint","Unplaced business units appear here.\nDrag them into a department when ready.")); }
+    bb.appendChild(zb);
+
+    var bp=document.getElementById("body-prod"); bp.innerHTML="";
+    var uP=state.products.filter(function(p){return !p.businessUnitId;});
+    var zp=makeZone("product",null,"tray");
+    if(uP.length){ uP.forEach(function(p){ zp.appendChild(makeProduct(p)); }); }
+    else { zp.appendChild(el("div","hint","Unplaced products appear here.\nDrag them onto a business unit.")); }
+    bp.appendChild(zp);
+
+    renderStats();
+  }
+  function renderStats(){
+    var s=document.getElementById("stats"); s.innerHTML="";
+    var aBU=state.businessUnits.filter(function(b){return b.departmentId;}).length;
+    var aP=state.products.filter(function(p){return p.businessUnitId;}).length;
+    function seg(color,label,n,sub){ var d=el("span","seg"); var sw=el("span","swatch"); sw.style.background=color; d.appendChild(sw); d.appendChild(el("b",null,String(n))); d.appendChild(document.createTextNode(" "+label+(sub?" ("+sub+")":""))); return d; }
+    s.appendChild(seg("var(--dept)","Departments",state.departments.length));
+    s.appendChild(seg("var(--bu)","Business Units",state.businessUnits.length,aBU+" placed"));
+    s.appendChild(seg("var(--prod)","Products & Services",state.products.length,aP+" placed"));
+  }
+
+  // ---------- Outline / export ----------
+  function buildTree(){
+    var tree=document.getElementById("tree"); tree.innerHTML="";
+    if(!state.departments.length&&!state.businessUnits.length&&!state.products.length){ tree.appendChild(el("div","t-none","Nothing yet — start building your hierarchy.")); return; }
+    state.departments.forEach(function(d){
+      tree.appendChild(el("div","t-dept",d.name));
+      var bus=state.businessUnits.filter(function(b){return b.departmentId===d.id;});
+      if(!bus.length) tree.appendChild(el("div","t-none","no business units"));
+      bus.forEach(function(b){
+        tree.appendChild(el("div","t-bu",b.name));
+        var prods=state.products.filter(function(p){return p.businessUnitId===b.id;});
+        if(!prods.length) tree.appendChild(el("div","t-none","no products"));
+        prods.forEach(function(p){ tree.appendChild(el("div","t-prod",p.name)); });
+      });
+    });
+    var oBU=state.businessUnits.filter(function(b){return !b.departmentId;});
+    var oP=state.products.filter(function(p){return !p.businessUnitId;});
+    if(oBU.length||oP.length){
+      tree.appendChild(el("div","t-dept","Unplaced"));
+      oBU.forEach(function(b){ tree.appendChild(el("div","t-bu",b.name)); state.products.filter(function(p){return p.businessUnitId===b.id;}).forEach(function(p){ tree.appendChild(el("div","t-prod",p.name)); }); });
+      oP.forEach(function(p){ tree.appendChild(el("div","t-prod",p.name)); });
+    }
+  }
+  function outlineText(){
+    var L=[];
+    state.departments.forEach(function(d){ L.push(d.name);
+      state.businessUnits.filter(function(b){return b.departmentId===d.id;}).forEach(function(b){ L.push("  • "+b.name);
+        state.products.filter(function(p){return p.businessUnitId===b.id;}).forEach(function(p){ L.push("      – "+p.name); }); }); });
+    var oBU=state.businessUnits.filter(function(b){return !b.departmentId;});
+    var oP=state.products.filter(function(p){return !p.businessUnitId;});
+    if(oBU.length||oP.length){ L.push("Unplaced");
+      oBU.forEach(function(b){ L.push("  • "+b.name); state.products.filter(function(p){return p.businessUnitId===b.id;}).forEach(function(p){ L.push("      – "+p.name); }); });
+      oP.forEach(function(p){ L.push("  – "+p.name); }); }
+    return L.join("\n");
+  }
+  function download(fn,text,type){ var b=new Blob([text],{type:type||"text/plain"}); var u=URL.createObjectURL(b); var a=document.createElement("a"); a.href=u; a.download=fn; document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(function(){URL.revokeObjectURL(u);},500); }
+
+  var toastTimer;
+  function toast(m){ var t=document.getElementById("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(toastTimer); toastTimer=setTimeout(function(){t.classList.remove("show");},1900); }
+  function fallbackCopy(txt){ var ta=document.createElement("textarea"); ta.value=txt; document.body.appendChild(ta); ta.select(); try{ document.execCommand("copy"); toast("Outline copied"); }catch(e){ toast("Copy not supported here"); } document.body.removeChild(ta); }
+
+  // ---------- Wiring ----------
+  function wireAdders(){
+    document.querySelectorAll("[data-add]").forEach(function(btn){
+      var kind=btn.getAttribute("data-add"); var input=document.getElementById("add-"+kind);
+      btn.addEventListener("click",function(){ addItem(kind,input.value); input.value=""; input.focus(); });
+      input.addEventListener("keydown",function(e){ if(e.key==="Enter"){ addItem(kind,input.value); input.value=""; } });
+    });
+  }
+  function wireToolbar(){
+    document.getElementById("btn-fold").addEventListener("click",function(){
+      var ids=[];
+      state.departments.forEach(function(d){ if(state.businessUnits.some(function(b){return b.departmentId===d.id;})) ids.push(d.id); });
+      state.businessUnits.forEach(function(b){ if(state.products.some(function(p){return p.businessUnitId===b.id;})) ids.push(b.id); });
+      if(!ids.length) return;
+      var anyOpen=ids.some(function(id){return !collapsed[id];});
+      ids.forEach(function(id){ collapsed[id]=anyOpen; });
+      saveUI(); render(); toast(anyOpen?"Collapsed all":"Expanded all");
+    });
+    document.getElementById("btn-outline").addEventListener("click",function(){ buildTree(); document.getElementById("scrim").classList.add("show"); });
+    document.getElementById("btn-close").addEventListener("click",function(){ document.getElementById("scrim").classList.remove("show"); });
+    document.getElementById("scrim").addEventListener("click",function(e){ if(e.target===this) this.classList.remove("show"); });
+    document.getElementById("btn-copy").addEventListener("click",function(){ var t=outlineText(); if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(t).then(function(){toast("Outline copied");},function(){fallbackCopy(t);}); } else fallbackCopy(t); });
+    document.getElementById("btn-download-json").addEventListener("click",function(){ download("business-hierarchy.json",JSON.stringify(state,null,2),"application/json"); toast("JSON downloaded"); });
+    document.getElementById("btn-export").addEventListener("click",function(){ download("business-hierarchy.json",JSON.stringify(state,null,2),"application/json"); toast("JSON downloaded"); });
+    document.getElementById("btn-import").addEventListener("click",function(){ document.getElementById("file-input").click(); });
+    document.getElementById("file-input").addEventListener("change",function(e){
+      var f=e.target.files[0]; if(!f) return; var r=new FileReader();
+      r.onload=function(){ try{ var d=JSON.parse(r.result); if(d&&(d.departments||d.businessUnits||d.products)){ state=normalize(d); save(); render(); toast("Hierarchy imported"); } else toast("That file didn't look like a hierarchy"); }catch(err){ toast("Couldn't read that file"); } };
+      r.readAsText(f); e.target.value="";
+    });
+    document.getElementById("btn-reset").addEventListener("click",function(){ if(confirm("Clear the entire hierarchy? This can't be undone.")){ state={departments:[],businessUnits:[],products:[]}; save(); render(); toast("Cleared"); } });
+  }
+  function seedIfEmpty(){
+    if(state.departments.length||state.businessUnits.length||state.products.length) return;
+    var dId=uid(), buCybera=uid();
+    state.departments=[{id:dId,name:"Security & Network Solutions"}];
+    state.businessUnits=[{id:buCybera,name:"Cybera",departmentId:dId},{id:uid(),name:"Nuspire",departmentId:null}];
+    state.products=[{id:uid(),name:"Managed Detection & Response",businessUnitId:buCybera},{id:uid(),name:"Firewall Management",businessUnitId:null},{id:uid(),name:"24/7 SOC Monitoring",businessUnitId:null}];
+  }
+
+  wireAdders(); wireToolbar();
+  load(function(){ seedIfEmpty(); render(); });
+})();
+</script>
+</body>
+</html>
