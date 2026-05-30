@@ -7,55 +7,43 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
   :root{
-    --paper:#f7f3ec;
-    --paper-2:#fdfbf7;
-    --ink:#23202a;
-    --ink-soft:#6c6678;
-    --line:#e3dbcf;
-    --line-2:#d6ccba;
-
-    --dept:#5b4fc4;        --dept-bg:#ecebfb;   --dept-line:#cfc9f4;
-    --bu:#0e8f7e;          --bu-bg:#e6f4f0;     --bu-line:#bfe5dc;
-    --prod:#c2683a;        --prod-bg:#faf0e7;   --prod-line:#ecd2bc;
-
+    --paper:#f7f3ec; --paper-2:#fdfbf7; --ink:#23202a; --ink-soft:#6c6678;
+    --line:#e3dbcf; --line-2:#d6ccba;
+    --dept:#5b4fc4; --dept-bg:#ecebfb; --dept-line:#cfc9f4;
+    --bu:#0e8f7e;   --bu-bg:#e6f4f0;   --bu-line:#bfe5dc;
+    --prod:#c2683a; --prod-bg:#faf0e7; --prod-line:#ecd2bc;
     --shadow:0 1px 2px rgba(40,30,20,.05),0 8px 24px rgba(40,30,20,.06);
     --shadow-lift:0 4px 10px rgba(40,30,20,.10),0 18px 40px rgba(40,30,20,.14);
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%}
-  body{
-    font-family:"Hanken Grotesk",ui-sans-serif,system-ui,sans-serif;
-    background:
-      radial-gradient(1200px 600px at 15% -10%, #fffdf8 0%, rgba(255,253,248,0) 55%),
-      radial-gradient(900px 500px at 100% 0%, #f2ecdf 0%, rgba(242,236,223,0) 60%),
-      var(--paper);
-    color:var(--ink);
-    -webkit-font-smoothing:antialiased;min-height:100vh;
-  }
+  body{font-family:"Hanken Grotesk",ui-sans-serif,system-ui,sans-serif;
+    background:radial-gradient(1200px 600px at 15% -10%, #fffdf8 0%, rgba(255,253,248,0) 55%),radial-gradient(900px 500px at 100% 0%, #f2ecdf 0%, rgba(242,236,223,0) 60%),var(--paper);
+    color:var(--ink);-webkit-font-smoothing:antialiased;min-height:100vh}
 
-  header{
-    padding:26px 32px 18px;border-bottom:1px solid var(--line);
-    display:flex;flex-wrap:wrap;align-items:flex-end;gap:18px 28px;
-    background:linear-gradient(180deg, rgba(255,253,248,.7), rgba(255,253,248,0));
-  }
+  header{padding:26px 32px 18px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;align-items:flex-end;gap:18px 28px;background:linear-gradient(180deg, rgba(255,253,248,.7), rgba(255,253,248,0))}
   .title-wrap{display:flex;flex-direction:column;gap:4px;margin-right:auto}
   h1{font-family:"Fraunces",serif;font-weight:600;font-size:30px;line-height:1;letter-spacing:-.01em}
   h1 .dot{color:var(--prod)}
   .subtitle{color:var(--ink-soft);font-size:14.5px;max-width:54ch}
-  .toolbar{display:flex;flex-wrap:wrap;gap:8px}
-  button.tool{
-    font-family:inherit;font-size:13px;font-weight:600;color:var(--ink);
-    background:var(--paper-2);border:1px solid var(--line-2);border-radius:9px;
-    padding:8px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;
-    transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease;
-  }
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  button.tool{font-family:inherit;font-size:13px;font-weight:600;color:var(--ink);background:var(--paper-2);border:1px solid var(--line-2);border-radius:9px;padding:8px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease}
   button.tool:hover{transform:translateY(-1px);box-shadow:var(--shadow);border-color:var(--ink-soft)}
   button.tool:active{transform:translateY(0)}
   button.tool svg{width:15px;height:15px}
   button.tool.danger{color:#a23b2a}
   button.tool.primary{background:var(--ink);color:#fdfbf7;border-color:var(--ink)}
+  .status{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;padding:6px 12px;border-radius:999px;border:1px solid var(--line-2);background:var(--paper-2);color:var(--ink-soft)}
+  .status .led{width:8px;height:8px;border-radius:50%;background:#c2b9a8;flex:none}
+  .status.live{color:#0a6f61;border-color:var(--bu-line);background:var(--bu-bg)}
+  .status.live .led{background:#16b39a;box-shadow:0 0 0 3px rgba(22,179,154,.18)}
+
+  .banner{display:none;margin:14px 32px 0;padding:12px 15px;border-radius:11px;background:#fbf1d8;border:1px solid #ecd9a6;color:#7a5a12;font-size:13.5px;line-height:1.5}
+  .banner.show{display:block}
+  .banner b{font-weight:700}
 
   .stats{display:flex;gap:22px;padding:12px 32px;color:var(--ink-soft);font-size:13px;border-bottom:1px solid var(--line);flex-wrap:wrap}
   .stats b{color:var(--ink);font-weight:700}
@@ -64,38 +52,29 @@
 
   .board{display:grid;grid-template-columns:1.9fr 1fr 1fr;gap:18px;padding:22px 32px 40px;align-items:start}
   @media(max-width:980px){.board{grid-template-columns:1fr}}
-
   .column{background:var(--paper-2);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;min-height:220px}
   .col-head{padding:16px 16px 13px;border-bottom:1px solid var(--line);position:relative}
   .col-head::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px}
-  .col-dept .col-head::before{background:var(--dept)}
-  .col-bu   .col-head::before{background:var(--bu)}
-  .col-prod .col-head::before{background:var(--prod)}
+  .col-dept .col-head::before{background:var(--dept)} .col-bu .col-head::before{background:var(--bu)} .col-prod .col-head::before{background:var(--prod)}
   .col-tier{font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--ink-soft)}
   .col-name{font-family:"Fraunces",serif;font-weight:600;font-size:18.5px;margin-top:2px}
   .col-dept .col-name{color:var(--dept)} .col-bu .col-name{color:var(--bu)} .col-prod .col-name{color:var(--prod)}
   .col-sub{font-size:12px;color:var(--ink-soft);margin-top:3px}
-
   .adder{display:flex;gap:8px;padding:13px 16px;border-bottom:1px dashed var(--line)}
   .adder input{flex:1;font-family:inherit;font-size:14px;color:var(--ink);background:#fff;border:1px solid var(--line-2);border-radius:9px;padding:9px 11px;outline:none;transition:border-color .15s ease, box-shadow .15s ease}
   .adder input:focus{border-color:var(--ink-soft);box-shadow:0 0 0 3px rgba(110,100,120,.10)}
   .adder button{font-family:inherit;font-weight:700;font-size:18px;line-height:1;color:#fff;border:none;border-radius:9px;width:40px;cursor:pointer;flex:none;transition:filter .12s ease, transform .12s ease}
   .adder button:hover{filter:brightness(1.08);transform:translateY(-1px)}
-  .col-dept .adder button{background:var(--dept)}
-  .col-bu   .adder button{background:var(--bu)}
-  .col-prod .adder button{background:var(--prod)}
-
+  .col-dept .adder button{background:var(--dept)} .col-bu .adder button{background:var(--bu)} .col-prod .adder button{background:var(--prod)}
   .body{padding:12px;display:flex;flex-direction:column;gap:12px;flex:1}
 
-  /* ---------- Drop zones ---------- */
   .dropzone{border-radius:10px;border:1.5px dashed transparent;transition:border-color .12s ease,background .12s ease;display:flex;flex-direction:column;gap:10px}
   .dropzone.tray{min-height:120px;padding:4px}
   .dropzone.over{border-color:currentColor;background:rgba(255,255,255,.6)}
   .dz-bu.over{color:var(--bu)} .dz-product.over{color:var(--prod)}
-  .hint{color:#b6ab98;font-size:12.5px;font-style:italic;padding:10px 6px;text-align:center;border-radius:8px}
-  .hint.rail{text-align:left;padding:8px 10px}
+  .hint{color:#b6ab98;font-size:12.5px;font-style:italic;padding:10px 6px;text-align:center;border-radius:8px;white-space:pre-line}
+  .hint.rail{text-align:left;padding:8px 10px;white-space:normal}
 
-  /* ---------- Cards ---------- */
   .card{position:relative;border-radius:11px;transition:box-shadow .12s ease,transform .12s ease,opacity .12s ease,border-color .12s ease}
   .card.dragging{opacity:.35}
   .card-head{display:flex;align-items:center;gap:9px;padding:10px 11px;cursor:grab}
@@ -116,31 +95,22 @@
   .chev.rot{transform:rotate(-90deg)}
   .card.collapsed>.dropzone{display:none}
   .card.collapsed>.card-head{opacity:.92}
-
-  /* Department card (top level / live tree) */
   .card.dept{background:#fff;border:1px solid var(--line-2);border-left:4px solid var(--dept);box-shadow:var(--shadow)}
   .card.dept>.card-head .label{font-family:"Fraunces",serif;font-size:16px;color:var(--dept)}
   .card.dept .bu-zone{padding:2px 12px 12px}
-
-  /* Business unit card */
   .card.bu{background:var(--bu-bg);border:1px solid var(--bu-line);border-left:4px solid var(--bu)}
   .card.bu>.card-head .label{color:#0a6f61}
   .card.bu .prod-zone{padding:0 11px 11px}
-
-  /* Product card (leaf) */
   .card.product{background:#fff;border:1px solid var(--prod-line);border-left:3px solid var(--prod)}
   .card.product>.card-head{padding:8px 11px}
-
   .card:hover{box-shadow:var(--shadow-lift)}
   .card.drop-before{box-shadow:0 -3px 0 currentColor, var(--shadow-lift)}
   .card.drop-after{box-shadow:0 3px 0 currentColor, var(--shadow-lift)}
   .card.dept.drop-before,.card.dept.drop-after{color:var(--dept)}
   .card.bu.drop-before,.card.bu.drop-after{color:var(--bu)}
   .card.product.drop-before,.card.product.drop-after{color:var(--prod)}
-
   .col-empty{color:#b6ab98;font-size:13px;font-style:italic;text-align:center;padding:22px 8px}
 
-  /* ---------- Modal ---------- */
   .scrim{position:fixed;inset:0;background:rgba(35,28,20,.42);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:50;padding:24px}
   .scrim.show{display:flex}
   .modal{background:var(--paper-2);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow-lift);max-width:560px;width:100%;max-height:84vh;display:flex;flex-direction:column;overflow:hidden}
@@ -155,7 +125,7 @@
   .tree .t-prod::before{content:"–";color:var(--prod)}
   .tree .t-none{margin-left:18px;color:#b6ab98;font-style:italic;font-size:12.5px}
   .modal-foot{padding:14px 22px;border-top:1px solid var(--line);display:flex;gap:9px;justify-content:flex-end}
-  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(120%);background:var(--ink);color:#fdfbf7;padding:11px 18px;border-radius:10px;font-size:13.5px;font-weight:600;box-shadow:var(--shadow-lift);transition:transform .28s cubic-bezier(.2,.9,.3,1.2);z-index:60}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(120%);background:var(--ink);color:#fdfbf7;padding:11px 18px;border-radius:10px;font-size:13.5px;font-weight:600;box-shadow:var(--shadow-lift);transition:transform .28s cubic-bezier(.2,.9,.3,1.2);z-index:60;max-width:80vw;text-align:center}
   .toast.show{transform:translateX(-50%) translateY(0)}
   input[type=file]{display:none}
 </style>
@@ -167,6 +137,7 @@
       <p class="subtitle">Add items in the trays, then drag them into place. Drop a business unit into a department and its products travel with it — building one real, nested hierarchy.</p>
     </div>
     <div class="toolbar">
+      <span class="status" id="status"><span class="led"></span><span id="status-text">Local only</span></span>
       <button class="tool" id="btn-fold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 13 12 18 17 13"/><polyline points="7 6 12 11 17 6"/></svg>Collapse / expand</button>
       <button class="tool primary" id="btn-outline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>View hierarchy</button>
       <button class="tool" id="btn-export"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export</button>
@@ -176,6 +147,7 @@
     </div>
   </header>
 
+  <div class="banner" id="banner"></div>
   <div class="stats" id="stats"></div>
 
   <div class="board">
@@ -184,13 +156,11 @@
       <div class="adder"><input id="add-dept" placeholder="New department…" autocomplete="off"><button data-add="dept" title="Add department">+</button></div>
       <div class="body" id="body-dept"></div>
     </section>
-
     <section class="column col-bu">
       <div class="col-head"><div class="col-tier">Tier 2 · staging</div><div class="col-name">Business Units</div><div class="col-sub">Unplaced — drag into a department</div></div>
       <div class="adder"><input id="add-bu" placeholder="New business unit…" autocomplete="off"><button data-add="bu" title="Add business unit">+</button></div>
       <div class="body" id="body-bu"></div>
     </section>
-
     <section class="column col-prod">
       <div class="col-head"><div class="col-tier">Tier 3 · staging</div><div class="col-name">Products &amp; Services</div><div class="col-sub">Unplaced — drag onto a business unit</div></div>
       <div class="adder"><input id="add-prod" placeholder="New product or service…" autocomplete="off"><button data-add="prod" title="Add product/service">+</button></div>
@@ -205,27 +175,51 @@
       <div class="modal-foot"><button class="tool" id="btn-copy">Copy as text</button><button class="tool primary" id="btn-download-json">Download JSON</button></div>
     </div>
   </div>
-
   <div class="toast" id="toast"></div>
 
 <script>
+/* ============================================================
+   SHARED SAVING SETUP  (edit only the two lines just below)
+   1. Create a free project at supabase.com
+   2. Paste your Project URL and anon public key between the quotes
+   Leave them as-is to run in local-only mode.
+   ============================================================ */
+var SUPABASE_URL      = "YOUR-PROJECT-URL";   // e.g. https://abcd1234.supabase.co
+var SUPABASE_ANON_KEY = "YOUR-ANON-KEY";      // the long "anon public" key
+/* ============================================================ */
+
 (function(){
   "use strict";
 
   var state = { departments:[], businessUnits:[], products:[] };
-  var STORE_KEY = "business-hierarchy-v2";
+  var STORE_KEY = "business-hierarchy-v3";
   var drag = { kind:null, id:null };
-  var collapsed = {};                 // id -> true when collapsed
+  var collapsed = {};
   var springTimer=null, springId=null;
+
+  var CLOUD = (SUPABASE_URL.indexOf("YOUR-")===-1) && (SUPABASE_ANON_KEY.indexOf("YOUR-")===-1) && (typeof supabase!=="undefined");
+  var sb = null;
+  var busyEditing=false, pendingSync=false, syncTimer=null;
 
   function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
   function arrFor(kind){ return kind==="dept"?state.departments : kind==="bu"?state.businessUnits : state.products; }
   function parentField(kind){ return kind==="bu"?"departmentId" : kind==="product"?"businessUnitId" : null; }
+  function parentOf(kind,item){ var f=parentField(kind); return f?(item[f]||null):null; }
+  function byPos(a,b){ return (a.pos||0)-(b.pos||0); }
+  function siblings(kind,parentId){ return arrFor(kind).filter(function(x){ return parentOf(kind,x)===(parentId||null); }); }
+  function nextPos(kind,parentId){ var m=0; siblings(kind,parentId).forEach(function(x){ if((x.pos||0)>m)m=x.pos; }); return m+1000; }
+  function posRelative(kind,parentId,targetId,after){
+    var s=siblings(kind,parentId).slice().sort(byPos);
+    var ti=-1; for(var i=0;i<s.length;i++){ if(s[i].id===targetId){ti=i;break;} }
+    if(ti<0) return nextPos(kind,parentId);
+    if(after){ var n=s[ti+1]; return n?(s[ti].pos+n.pos)/2:(s[ti].pos+1000); }
+    var p=s[ti-1]; return p?(p.pos+s[ti].pos)/2:(s[ti].pos-1000);
+  }
 
-  // ---------- Persistence (best-effort; falls back to export/import) ----------
-  function save(){ try{ if(window.storage&&window.storage.set){ window.storage.set(STORE_KEY, JSON.stringify(state), false).catch(function(){}); } }catch(e){} }
+  /* ---------- Local persistence (used when CLOUD is off) ---------- */
+  function save(){ if(CLOUD) return; try{ if(window.storage&&window.storage.set){ window.storage.set(STORE_KEY, JSON.stringify(state), false).catch(function(){}); } }catch(e){} }
   function saveUI(){ try{ if(window.storage&&window.storage.set){ window.storage.set(STORE_KEY+":ui", JSON.stringify(collapsed), false).catch(function(){}); } }catch(e){} }
-  function load(cb){
+  function loadLocal(cb){
     try{
       if(window.storage&&window.storage.get){
         window.storage.get(STORE_KEY,false).then(function(r){
@@ -241,174 +235,211 @@
     cb();
   }
   function normalize(d){
-    return {
-      departments:(d.departments||[]).map(function(x){return {id:x.id||uid(),name:x.name||""};}),
-      businessUnits:(d.businessUnits||[]).map(function(x){return {id:x.id||uid(),name:x.name||"",departmentId:x.departmentId||null};}),
-      products:(d.products||[]).map(function(x){return {id:x.id||uid(),name:x.name||"",businessUnitId:x.businessUnitId||null};})
-    };
+    var out={departments:[],businessUnits:[],products:[]};
+    (d.departments||[]).forEach(function(x,i){ out.departments.push({id:x.id||uid(),name:x.name||"",pos:x.pos!=null?x.pos:(i+1)*1000}); });
+    (d.businessUnits||[]).forEach(function(x,i){ out.businessUnits.push({id:x.id||uid(),name:x.name||"",departmentId:x.departmentId||null,pos:x.pos!=null?x.pos:(i+1)*1000}); });
+    (d.products||[]).forEach(function(x,i){ out.products.push({id:x.id||uid(),name:x.name||"",businessUnitId:x.businessUnitId||null,pos:x.pos!=null?x.pos:(i+1)*1000}); });
+    return out;
   }
 
-  // ---------- Mutations ----------
+  /* ---------- Cloud (Supabase) ---------- */
+  function rowsToState(rows){
+    var s={departments:[],businessUnits:[],products:[]};
+    (rows||[]).forEach(function(r){
+      var item={id:r.id,name:r.name||"",pos:r.position||0};
+      if(r.kind==="dept") s.departments.push(item);
+      else if(r.kind==="bu"){ item.departmentId=r.parent_id||null; s.businessUnits.push(item); }
+      else if(r.kind==="product"){ item.businessUnitId=r.parent_id||null; s.products.push(item); }
+    });
+    return s;
+  }
+  function toRow(kind,item){
+    return { id:item.id, kind:kind, name:item.name, parent_id:parentOf(kind,item), position:item.pos||0, updated_at:new Date().toISOString() };
+  }
+  function dbErr(res){ if(res&&res.error){ console.error(res.error); toast("Cloud sync issue — check connection"); } }
+  function dbUpsert(kind,item){ if(!CLOUD){ save(); return; } sb.from("nodes").upsert(toRow(kind,item)).then(dbErr); }
+  function dbDelete(id){ if(!CLOUD){ save(); return; } sb.from("nodes").delete().eq("id",id).then(dbErr); }
+  function dbUnassign(parentId){ if(!CLOUD) return; sb.from("nodes").update({parent_id:null,updated_at:new Date().toISOString()}).eq("parent_id",parentId).then(dbErr); }
+
+  function setStatus(live){
+    var s=document.getElementById("status"), t=document.getElementById("status-text");
+    if(live){ s.classList.add("live"); t.textContent="Live · shared"; }
+    else{ s.classList.remove("live"); t.textContent="Local only"; }
+    var b=document.getElementById("banner");
+    if(live){ b.classList.remove("show"); }
+    else{
+      b.classList.add("show");
+      b.innerHTML='<b>Shared saving isn\u2019t switched on yet.</b> Changes are kept only in this browser. To let your whole team edit one shared hierarchy through the link, add your free Supabase details at the top of this file (your colleague who set this up has the steps).';
+    }
+  }
+
+  function cloudInit(){
+    try{ sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
+    catch(e){ CLOUD=false; }
+    if(!CLOUD){ startLocal(); return; }
+    sb.from("nodes").select("*").then(function(res){
+      if(res.error){ throw res.error; }
+      state = rowsToState(res.data);
+      setStatus(true);
+      render();
+      subscribeRealtime();
+    }).catch(function(e){
+      console.error(e); CLOUD=false;
+      toast("Couldn\u2019t reach the cloud — running locally for now");
+      startLocal();
+    });
+  }
+  function subscribeRealtime(){
+    try{
+      sb.channel("nodes-rt").on("postgres_changes",{event:"*",schema:"public",table:"nodes"},function(){ scheduleSync(); }).subscribe();
+    }catch(e){ console.error(e); }
+  }
+  function scheduleSync(){ if(!CLOUD) return; pendingSync=true; clearTimeout(syncTimer); syncTimer=setTimeout(maybeSync,200); }
+  function maybeSync(){
+    if(!pendingSync||!CLOUD) return;
+    if(drag.id||busyEditing){ setTimeout(maybeSync,300); return; }
+    pendingSync=false;
+    sb.from("nodes").select("*").then(function(res){ if(res.error){ return; } state=rowsToState(res.data); render(); });
+  }
+
+  /* ---------- Mutations (write locally + to whichever store is active) ---------- */
   function addItem(kind,name){
     name=(name||"").trim(); if(!name) return;
-    if(kind==="dept") state.departments.push({id:uid(),name:name});
-    else if(kind==="bu") state.businessUnits.push({id:uid(),name:name,departmentId:null});
-    else state.products.push({id:uid(),name:name,businessUnitId:null});
-    save(); render();
+    var item;
+    if(kind==="dept"){ item={id:uid(),name:name,pos:nextPos("dept",null)}; state.departments.push(item); }
+    else if(kind==="bu"){ item={id:uid(),name:name,departmentId:null,pos:nextPos("bu",null)}; state.businessUnits.push(item); }
+    else { item={id:uid(),name:name,businessUnitId:null,pos:nextPos("product",null)}; state.products.push(item); }
+    render(); dbUpsert(kind,item);
   }
-  function rename(kind,id,name){ name=(name||"").trim(); var it=arrFor(kind).find(function(x){return x.id===id;}); if(it&&name){it.name=name;save();} render(); }
+  function rename(kind,id,name){
+    name=(name||"").trim(); var it=arrFor(kind).find(function(x){return x.id===id;});
+    if(it&&name){ it.name=name; render(); dbUpsert(kind,it); } else render();
+  }
   function remove(kind,id){
     if(kind==="dept"){ state.departments=state.departments.filter(function(x){return x.id!==id;}); state.businessUnits.forEach(function(b){if(b.departmentId===id)b.departmentId=null;}); }
     else if(kind==="bu"){ state.businessUnits=state.businessUnits.filter(function(x){return x.id!==id;}); state.products.forEach(function(p){if(p.businessUnitId===id)p.businessUnitId=null;}); }
     else { state.products=state.products.filter(function(x){return x.id!==id;}); }
-    save(); render();
+    render();
+    if(CLOUD){ dbDelete(id); if(kind!=="product") dbUnassign(id); } else save();
   }
   function moveToGroup(kind,dragId,parentId){
-    var arr=arrFor(kind); var i=arr.findIndex(function(x){return x.id===dragId;}); if(i<0) return;
-    var item=arr.splice(i,1)[0]; var f=parentField(kind); if(f) item[f]=parentId; arr.push(item); save(); render();
+    var arr=arrFor(kind); var it=arr.find(function(x){return x.id===dragId;}); if(!it) return;
+    var f=parentField(kind); if(f) it[f]=parentId; it.pos=nextPos(kind,parentId);
+    render(); dbUpsert(kind,it);
   }
   function moveToCard(kind,dragId,targetId,after){
     if(dragId===targetId) return;
-    var arr=arrFor(kind); var di=arr.findIndex(function(x){return x.id===dragId;}); if(di<0) return;
-    var item=arr.splice(di,1)[0];
-    var target=arr.find(function(x){return x.id===targetId;});
-    var f=parentField(kind);
-    if(target){ if(f) item[f]=target[f]!==undefined?target[f]:null; }
-    var ti=arr.findIndex(function(x){return x.id===targetId;});
-    if(ti<0){ arr.push(item); } else { arr.splice(after?ti+1:ti,0,item); }
-    save(); render();
+    var arr=arrFor(kind); var it=arr.find(function(x){return x.id===dragId;}); if(!it) return;
+    var target=arr.find(function(x){return x.id===targetId;}); if(!target) return;
+    var f=parentField(kind); var newParent=parentOf(kind,target);
+    if(f) it[f]=newParent;
+    it.pos=posRelative(kind,newParent,targetId,after);
+    render(); dbUpsert(kind,it);
   }
 
-  // ---------- DnD primitives ----------
+  /* ---------- DnD ---------- */
   function clearMarks(){ document.querySelectorAll(".dragging,.over,.drop-before,.drop-after").forEach(function(n){n.classList.remove("dragging","over","drop-before","drop-after");}); }
-  function clearSpring(){ if(springTimer){ clearTimeout(springTimer); springTimer=null; } springId=null; }
-  function attachSpring(card,id){
-    // While dragging, hovering a collapsed node briefly auto-expands it so you can drill in.
-    card.addEventListener("dragover",function(e){
-      if(!drag.kind || !collapsed[id]) return;
-      if(springId===id) return;
-      clearSpring(); springId=id;
-      springTimer=setTimeout(function(){
-        collapsed[id]=false; card.classList.remove("collapsed");
-        var ch=card.querySelector(":scope > .card-head > .chev"); if(ch) ch.classList.remove("rot");
-        saveUI(); springTimer=null; springId=null;
-      },520);
-    });
-    card.addEventListener("dragleave",function(e){ if(springId===id && !card.contains(e.relatedTarget)) clearSpring(); });
-  }
-  function addChevron(head,id){
-    var chev=el("button","chev"+(collapsed[id]?" rot":"")); chev.innerHTML=icon(CHEV); chev.title="Collapse / expand";
-    chev.addEventListener("click",function(e){ e.stopPropagation(); collapsed[id]=!collapsed[id]; saveUI(); render(); });
-    head.insertBefore(chev, head.firstChild);
-  }
+  function clearSpring(){ if(springTimer){clearTimeout(springTimer);springTimer=null;} springId=null; }
   function dragSource(card,kind,id){
     card.setAttribute("draggable","true");
-    var head=card.querySelector(":scope > .card-head") || card;
     card.addEventListener("dragstart",function(e){ e.stopPropagation(); drag.kind=kind; drag.id=id; e.dataTransfer.effectAllowed="move"; try{e.dataTransfer.setData("text/plain",id);}catch(_){ } card.classList.add("dragging"); });
-    card.addEventListener("dragend",function(){ drag.kind=null; drag.id=null; clearMarks(); clearSpring(); });
+    card.addEventListener("dragend",function(){ drag.kind=null; drag.id=null; clearMarks(); clearSpring(); maybeSync(); });
   }
   function reorderTarget(card,kind,id){
     card.addEventListener("dragover",function(e){
-      if(drag.kind!==kind || drag.id===id) return;
-      e.preventDefault();
-      var r=card.getBoundingClientRect(); var after=(e.clientY-r.top)>r.height/2;
+      if(drag.kind!==kind||drag.id===id) return;
+      e.preventDefault(); var r=card.getBoundingClientRect(); var after=(e.clientY-r.top)>r.height/2;
       card.classList.toggle("drop-after",after); card.classList.toggle("drop-before",!after);
     });
     card.addEventListener("dragleave",function(e){ if(!card.contains(e.relatedTarget)) card.classList.remove("drop-before","drop-after"); });
     card.addEventListener("drop",function(e){
-      if(drag.kind!==kind || drag.id===id) return;
+      if(drag.kind!==kind||drag.id===id) return;
       e.preventDefault(); e.stopPropagation();
       var r=card.getBoundingClientRect(); var after=(e.clientY-r.top)>r.height/2;
-      card.classList.remove("drop-before","drop-after");
-      moveToCard(kind,drag.id,id,after);
+      card.classList.remove("drop-before","drop-after"); moveToCard(kind,drag.id,id,after);
     });
   }
-  function makeZone(childKind,parentId,extraClass){
-    var zone=el("div","dropzone dz-"+childKind+(extraClass?(" "+extraClass):""));
+  function makeZone(childKind,parentId,extra){
+    var zone=el("div","dropzone dz-"+childKind+(extra?(" "+extra):""));
     zone.addEventListener("dragover",function(e){ if(drag.kind===childKind){ e.preventDefault(); zone.classList.add("over"); } });
     zone.addEventListener("dragleave",function(e){ if(e.target===zone||!zone.contains(e.relatedTarget)) zone.classList.remove("over"); });
     zone.addEventListener("drop",function(e){ if(drag.kind===childKind){ e.preventDefault(); e.stopPropagation(); zone.classList.remove("over"); moveToGroup(childKind,drag.id,parentId); } });
     return zone;
   }
+  function attachSpring(card,id){
+    card.addEventListener("dragover",function(){ if(!drag.kind||!collapsed[id]||springId===id) return; clearSpring(); springId=id;
+      springTimer=setTimeout(function(){ collapsed[id]=false; card.classList.remove("collapsed"); var ch=card.querySelector(":scope > .card-head > .chev"); if(ch) ch.classList.remove("rot"); saveUI(); springTimer=null; springId=null; },520); });
+    card.addEventListener("dragleave",function(e){ if(springId===id && !card.contains(e.relatedTarget)) clearSpring(); });
+  }
 
-  // ---------- Element builders ----------
+  /* ---------- Elements ---------- */
   function el(tag,cls,txt){ var n=document.createElement(tag); if(cls)n.className=cls; if(txt!=null)n.textContent=txt; return n; }
   function icon(p){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+p+'</svg>'; }
   var GRIP='<circle cx="9" cy="6" r="1.4" fill="currentColor" stroke="none"/><circle cx="15" cy="6" r="1.4" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="9" cy="18" r="1.4" fill="currentColor" stroke="none"/><circle cx="15" cy="18" r="1.4" fill="currentColor" stroke="none"/>';
   var XICON='<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>';
   var CHEV='<polyline points="6 9 12 15 18 9"/>';
 
+  function addChevron(head,id){
+    var chev=el("button","chev"+(collapsed[id]?" rot":"")); chev.innerHTML=icon(CHEV); chev.title="Collapse / expand";
+    chev.addEventListener("click",function(e){ e.stopPropagation(); collapsed[id]=!collapsed[id]; saveUI(); render(); });
+    head.insertBefore(chev, head.firstChild);
+  }
   function cardHead(kind,item,countText){
     var head=el("div","card-head");
     var grip=el("span","grip"); grip.innerHTML=icon(GRIP); head.appendChild(grip);
-    var acc=el("span","accent"); head.appendChild(acc);
+    head.appendChild(el("span","accent"));
     var label=el("span","label",item.name); head.appendChild(label);
-    if(countText!=null){ var kc=el("span","kidcount",countText); head.appendChild(kc); }
+    if(countText!=null) head.appendChild(el("span","kidcount",countText));
     var x=el("button","x"); x.innerHTML=icon(XICON); x.title="Delete";
     x.addEventListener("click",function(ev){ ev.stopPropagation(); remove(kind,item.id); });
     head.appendChild(x);
     label.addEventListener("dblclick",function(ev){
-      ev.stopPropagation();
+      ev.stopPropagation(); busyEditing=true;
       var inp=el("input","edit-input"); inp.value=item.name; head.replaceChild(inp,label); inp.focus(); inp.select();
-      var done=function(c){ rename(kind,item.id,c?inp.value:item.name); };
+      var done=function(c){ busyEditing=false; rename(kind,item.id,c?inp.value:item.name); maybeSync(); };
       inp.addEventListener("keydown",function(e){ if(e.key==="Enter")done(true); if(e.key==="Escape")done(false); });
       inp.addEventListener("blur",function(){ done(true); });
     });
     return head;
   }
-
-  function makeProduct(p){
-    var c=el("div","card product"); c.appendChild(cardHead("product",p));
-    dragSource(c,"product",p.id); reorderTarget(c,"product",p.id);
-    return c;
-  }
+  function makeProduct(p){ var c=el("div","card product"); c.appendChild(cardHead("product",p)); dragSource(c,"product",p.id); reorderTarget(c,"product",p.id); return c; }
   function makeBU(b){
-    var kids=state.products.filter(function(p){return p.businessUnitId===b.id;});
-    var c=el("div","card bu");
-    var head=cardHead("bu",b, kids.length?String(kids.length):null);
+    var kids=state.products.filter(function(p){return p.businessUnitId===b.id;}).sort(byPos);
+    var c=el("div","card bu"); var head=cardHead("bu",b, kids.length?String(kids.length):null);
     if(kids.length) addChevron(head,b.id);
-    c.appendChild(head);
-    if(collapsed[b.id]) c.classList.add("collapsed");
+    c.appendChild(head); if(collapsed[b.id]) c.classList.add("collapsed");
     var zone=makeZone("product",b.id); zone.classList.add("prod-zone");
-    if(kids.length){ kids.forEach(function(p){ zone.appendChild(makeProduct(p)); }); }
-    else { zone.appendChild(el("div","hint rail","drop products here")); }
-    c.appendChild(zone);
-    dragSource(c,"bu",b.id); reorderTarget(c,"bu",b.id); attachSpring(c,b.id);
+    if(kids.length){ kids.forEach(function(p){ zone.appendChild(makeProduct(p)); }); } else { zone.appendChild(el("div","hint rail","drop products here")); }
+    c.appendChild(zone); dragSource(c,"bu",b.id); reorderTarget(c,"bu",b.id); attachSpring(c,b.id);
     return c;
   }
   function makeDept(d){
-    var kids=state.businessUnits.filter(function(b){return b.departmentId===d.id;});
-    var c=el("div","card dept");
-    var head=cardHead("dept",d, kids.length?String(kids.length):null);
+    var kids=state.businessUnits.filter(function(b){return b.departmentId===d.id;}).sort(byPos);
+    var c=el("div","card dept"); var head=cardHead("dept",d, kids.length?String(kids.length):null);
     if(kids.length) addChevron(head,d.id);
-    c.appendChild(head);
-    if(collapsed[d.id]) c.classList.add("collapsed");
+    c.appendChild(head); if(collapsed[d.id]) c.classList.add("collapsed");
     var zone=makeZone("bu",d.id); zone.classList.add("bu-zone");
-    if(kids.length){ kids.forEach(function(b){ zone.appendChild(makeBU(b)); }); }
-    else { zone.appendChild(el("div","hint rail","drop business units here")); }
-    c.appendChild(zone);
-    dragSource(c,"dept",d.id); reorderTarget(c,"dept",d.id); attachSpring(c,d.id);
+    if(kids.length){ kids.forEach(function(b){ zone.appendChild(makeBU(b)); }); } else { zone.appendChild(el("div","hint rail","drop business units here")); }
+    c.appendChild(zone); dragSource(c,"dept",d.id); reorderTarget(c,"dept",d.id); attachSpring(c,d.id);
     return c;
   }
 
-  // ---------- Render ----------
   function render(){
     var bd=document.getElementById("body-dept"); bd.innerHTML="";
-    if(!state.departments.length){ bd.appendChild(el("div","col-empty","No departments yet. Add one above to start your hierarchy.")); }
-    else { state.departments.forEach(function(d){ bd.appendChild(makeDept(d)); }); }
+    var depts=state.departments.slice().sort(byPos);
+    if(!depts.length){ bd.appendChild(el("div","col-empty","No departments yet. Add one above to start your hierarchy.")); }
+    else { depts.forEach(function(d){ bd.appendChild(makeDept(d)); }); }
 
     var bb=document.getElementById("body-bu"); bb.innerHTML="";
-    var uBU=state.businessUnits.filter(function(b){return !b.departmentId;});
+    var uBU=state.businessUnits.filter(function(b){return !b.departmentId;}).sort(byPos);
     var zb=makeZone("bu",null,"tray");
-    if(uBU.length){ uBU.forEach(function(b){ zb.appendChild(makeBU(b)); }); }
-    else { zb.appendChild(el("div","hint","Unplaced business units appear here.\nDrag them into a department when ready.")); }
+    if(uBU.length){ uBU.forEach(function(b){ zb.appendChild(makeBU(b)); }); } else { zb.appendChild(el("div","hint","Unplaced business units appear here.\nDrag them into a department when ready.")); }
     bb.appendChild(zb);
 
     var bp=document.getElementById("body-prod"); bp.innerHTML="";
-    var uP=state.products.filter(function(p){return !p.businessUnitId;});
+    var uP=state.products.filter(function(p){return !p.businessUnitId;}).sort(byPos);
     var zp=makeZone("product",null,"tray");
-    if(uP.length){ uP.forEach(function(p){ zp.appendChild(makeProduct(p)); }); }
-    else { zp.appendChild(el("div","hint","Unplaced products appear here.\nDrag them onto a business unit.")); }
+    if(uP.length){ uP.forEach(function(p){ zp.appendChild(makeProduct(p)); }); } else { zp.appendChild(el("div","hint","Unplaced products appear here.\nDrag them onto a business unit.")); }
     bp.appendChild(zp);
 
     renderStats();
@@ -417,54 +448,53 @@
     var s=document.getElementById("stats"); s.innerHTML="";
     var aBU=state.businessUnits.filter(function(b){return b.departmentId;}).length;
     var aP=state.products.filter(function(p){return p.businessUnitId;}).length;
-    function seg(color,label,n,sub){ var d=el("span","seg"); var sw=el("span","swatch"); sw.style.background=color; d.appendChild(sw); d.appendChild(el("b",null,String(n))); d.appendChild(document.createTextNode(" "+label+(sub?" ("+sub+")":""))); return d; }
+    function seg(c,l,n,sub){ var d=el("span","seg"); var sw=el("span","swatch"); sw.style.background=c; d.appendChild(sw); d.appendChild(el("b",null,String(n))); d.appendChild(document.createTextNode(" "+l+(sub?" ("+sub+")":""))); return d; }
     s.appendChild(seg("var(--dept)","Departments",state.departments.length));
     s.appendChild(seg("var(--bu)","Business Units",state.businessUnits.length,aBU+" placed"));
     s.appendChild(seg("var(--prod)","Products & Services",state.products.length,aP+" placed"));
   }
 
-  // ---------- Outline / export ----------
+  /* ---------- Outline / export ---------- */
   function buildTree(){
     var tree=document.getElementById("tree"); tree.innerHTML="";
     if(!state.departments.length&&!state.businessUnits.length&&!state.products.length){ tree.appendChild(el("div","t-none","Nothing yet — start building your hierarchy.")); return; }
-    state.departments.forEach(function(d){
+    state.departments.slice().sort(byPos).forEach(function(d){
       tree.appendChild(el("div","t-dept",d.name));
-      var bus=state.businessUnits.filter(function(b){return b.departmentId===d.id;});
+      var bus=state.businessUnits.filter(function(b){return b.departmentId===d.id;}).sort(byPos);
       if(!bus.length) tree.appendChild(el("div","t-none","no business units"));
-      bus.forEach(function(b){
-        tree.appendChild(el("div","t-bu",b.name));
-        var prods=state.products.filter(function(p){return p.businessUnitId===b.id;});
+      bus.forEach(function(b){ tree.appendChild(el("div","t-bu",b.name));
+        var prods=state.products.filter(function(p){return p.businessUnitId===b.id;}).sort(byPos);
         if(!prods.length) tree.appendChild(el("div","t-none","no products"));
         prods.forEach(function(p){ tree.appendChild(el("div","t-prod",p.name)); });
       });
     });
-    var oBU=state.businessUnits.filter(function(b){return !b.departmentId;});
-    var oP=state.products.filter(function(p){return !p.businessUnitId;});
-    if(oBU.length||oP.length){
-      tree.appendChild(el("div","t-dept","Unplaced"));
-      oBU.forEach(function(b){ tree.appendChild(el("div","t-bu",b.name)); state.products.filter(function(p){return p.businessUnitId===b.id;}).forEach(function(p){ tree.appendChild(el("div","t-prod",p.name)); }); });
+    var oBU=state.businessUnits.filter(function(b){return !b.departmentId;}).sort(byPos);
+    var oP=state.products.filter(function(p){return !p.businessUnitId;}).sort(byPos);
+    if(oBU.length||oP.length){ tree.appendChild(el("div","t-dept","Unplaced"));
+      oBU.forEach(function(b){ tree.appendChild(el("div","t-bu",b.name)); state.products.filter(function(p){return p.businessUnitId===b.id;}).sort(byPos).forEach(function(p){ tree.appendChild(el("div","t-prod",p.name)); }); });
       oP.forEach(function(p){ tree.appendChild(el("div","t-prod",p.name)); });
     }
   }
   function outlineText(){
     var L=[];
-    state.departments.forEach(function(d){ L.push(d.name);
-      state.businessUnits.filter(function(b){return b.departmentId===d.id;}).forEach(function(b){ L.push("  • "+b.name);
-        state.products.filter(function(p){return p.businessUnitId===b.id;}).forEach(function(p){ L.push("      – "+p.name); }); }); });
-    var oBU=state.businessUnits.filter(function(b){return !b.departmentId;});
-    var oP=state.products.filter(function(p){return !p.businessUnitId;});
+    state.departments.slice().sort(byPos).forEach(function(d){ L.push(d.name);
+      state.businessUnits.filter(function(b){return b.departmentId===d.id;}).sort(byPos).forEach(function(b){ L.push("  • "+b.name);
+        state.products.filter(function(p){return p.businessUnitId===b.id;}).sort(byPos).forEach(function(p){ L.push("      – "+p.name); }); }); });
+    var oBU=state.businessUnits.filter(function(b){return !b.departmentId;}).sort(byPos);
+    var oP=state.products.filter(function(p){return !p.businessUnitId;}).sort(byPos);
     if(oBU.length||oP.length){ L.push("Unplaced");
-      oBU.forEach(function(b){ L.push("  • "+b.name); state.products.filter(function(p){return p.businessUnitId===b.id;}).forEach(function(p){ L.push("      – "+p.name); }); });
+      oBU.forEach(function(b){ L.push("  • "+b.name); state.products.filter(function(p){return p.businessUnitId===b.id;}).sort(byPos).forEach(function(p){ L.push("      – "+p.name); }); });
       oP.forEach(function(p){ L.push("  – "+p.name); }); }
     return L.join("\n");
   }
   function download(fn,text,type){ var b=new Blob([text],{type:type||"text/plain"}); var u=URL.createObjectURL(b); var a=document.createElement("a"); a.href=u; a.download=fn; document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(function(){URL.revokeObjectURL(u);},500); }
 
   var toastTimer;
-  function toast(m){ var t=document.getElementById("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(toastTimer); toastTimer=setTimeout(function(){t.classList.remove("show");},1900); }
+  function toast(m){ var t=document.getElementById("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(toastTimer); toastTimer=setTimeout(function(){t.classList.remove("show");},2200); }
   function fallbackCopy(txt){ var ta=document.createElement("textarea"); ta.value=txt; document.body.appendChild(ta); ta.select(); try{ document.execCommand("copy"); toast("Outline copied"); }catch(e){ toast("Copy not supported here"); } document.body.removeChild(ta); }
 
-  // ---------- Wiring ----------
+  function pushAllToCloud(){ if(!CLOUD) return; var rows=[]; state.departments.forEach(function(d){rows.push(toRow("dept",d));}); state.businessUnits.forEach(function(b){rows.push(toRow("bu",b));}); state.products.forEach(function(p){rows.push(toRow("product",p));}); if(rows.length) sb.from("nodes").upsert(rows).then(dbErr); }
+
   function wireAdders(){
     document.querySelectorAll("[data-add]").forEach(function(btn){
       var kind=btn.getAttribute("data-add"); var input=document.getElementById("add-"+kind);
@@ -474,13 +504,10 @@
   }
   function wireToolbar(){
     document.getElementById("btn-fold").addEventListener("click",function(){
-      var ids=[];
-      state.departments.forEach(function(d){ if(state.businessUnits.some(function(b){return b.departmentId===d.id;})) ids.push(d.id); });
+      var ids=[]; state.departments.forEach(function(d){ if(state.businessUnits.some(function(b){return b.departmentId===d.id;})) ids.push(d.id); });
       state.businessUnits.forEach(function(b){ if(state.products.some(function(p){return p.businessUnitId===b.id;})) ids.push(b.id); });
-      if(!ids.length) return;
-      var anyOpen=ids.some(function(id){return !collapsed[id];});
-      ids.forEach(function(id){ collapsed[id]=anyOpen; });
-      saveUI(); render(); toast(anyOpen?"Collapsed all":"Expanded all");
+      if(!ids.length) return; var anyOpen=ids.some(function(id){return !collapsed[id];});
+      ids.forEach(function(id){ collapsed[id]=anyOpen; }); saveUI(); render(); toast(anyOpen?"Collapsed all":"Expanded all");
     });
     document.getElementById("btn-outline").addEventListener("click",function(){ buildTree(); document.getElementById("scrim").classList.add("show"); });
     document.getElementById("btn-close").addEventListener("click",function(){ document.getElementById("scrim").classList.remove("show"); });
@@ -491,21 +518,28 @@
     document.getElementById("btn-import").addEventListener("click",function(){ document.getElementById("file-input").click(); });
     document.getElementById("file-input").addEventListener("change",function(e){
       var f=e.target.files[0]; if(!f) return; var r=new FileReader();
-      r.onload=function(){ try{ var d=JSON.parse(r.result); if(d&&(d.departments||d.businessUnits||d.products)){ state=normalize(d); save(); render(); toast("Hierarchy imported"); } else toast("That file didn't look like a hierarchy"); }catch(err){ toast("Couldn't read that file"); } };
+      r.onload=function(){ try{ var d=JSON.parse(r.result); if(d&&(d.departments||d.businessUnits||d.products)){ state=normalize(d); render(); if(CLOUD) pushAllToCloud(); else save(); toast(CLOUD?"Imported & synced to cloud":"Hierarchy imported"); } else toast("That file didn't look like a hierarchy"); }catch(err){ toast("Couldn't read that file"); } };
       r.readAsText(f); e.target.value="";
     });
-    document.getElementById("btn-reset").addEventListener("click",function(){ if(confirm("Clear the entire hierarchy? This can't be undone.")){ state={departments:[],businessUnits:[],products:[]}; save(); render(); toast("Cleared"); } });
+    document.getElementById("btn-reset").addEventListener("click",function(){
+      var msg=CLOUD?"Clear the entire shared hierarchy for everyone? This can't be undone.":"Clear the entire hierarchy? This can't be undone.";
+      if(confirm(msg)){
+        if(CLOUD){ sb.from("nodes").delete().neq("id","__none__").then(dbErr); }
+        state={departments:[],businessUnits:[],products:[]}; render(); if(!CLOUD) save(); toast("Cleared");
+      }
+    });
   }
   function seedIfEmpty(){
     if(state.departments.length||state.businessUnits.length||state.products.length) return;
     var dId=uid(), buCybera=uid();
-    state.departments=[{id:dId,name:"Security & Network Solutions"}];
-    state.businessUnits=[{id:buCybera,name:"Cybera",departmentId:dId},{id:uid(),name:"Nuspire",departmentId:null}];
-    state.products=[{id:uid(),name:"Managed Detection & Response",businessUnitId:buCybera},{id:uid(),name:"Firewall Management",businessUnitId:null},{id:uid(),name:"24/7 SOC Monitoring",businessUnitId:null}];
+    state.departments=[{id:dId,name:"Security & Network Solutions",pos:1000}];
+    state.businessUnits=[{id:buCybera,name:"Cybera",departmentId:dId,pos:1000},{id:uid(),name:"Nuspire",departmentId:null,pos:2000}];
+    state.products=[{id:uid(),name:"Managed Detection & Response",businessUnitId:buCybera,pos:1000},{id:uid(),name:"Firewall Management",businessUnitId:null,pos:2000},{id:uid(),name:"24/7 SOC Monitoring",businessUnitId:null,pos:3000}];
   }
+  function startLocal(){ setStatus(false); loadLocal(function(){ seedIfEmpty(); render(); }); }
 
   wireAdders(); wireToolbar();
-  load(function(){ seedIfEmpty(); render(); });
+  if(CLOUD) cloudInit(); else startLocal();
 })();
 </script>
 </body>
